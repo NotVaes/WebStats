@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, send_file
+from flask import Flask, request, render_template, send_file
 from flask_cors import CORS
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -30,14 +30,27 @@ def save_visits(visits):
     VISIT_LOG_FILE.write_text(json.dumps(visits, indent=2))
 
 
-def send_discord(message):
-    if not DISCORD_WEBHOOK_URL:
-        logging.warning("Discord webhook URL not set. Skipping notification.")
-        return
+def send_visit_embed(visit):
+    """
+    Sends a Discord embed with structured visit information.
+    """
+    embed = {
+        "title": "📥 New Visit",
+        "color": 5814783,
+        "fields": [
+            {"name": "Page", "value": visit['page'], "inline": True},
+            {"name": "Time", "value": visit['time'], "inline": True},
+            {"name": "IP", "value": visit['ip'], "inline": True},
+            {"name": "User-Agent", "value": visit['userAgent'], "inline": False},
+            {"name": "Referrer", "value": visit['referrer'], "inline": False}
+        ],
+        "timestamp": visit['time']
+    }
+    payload = {"embeds": [embed]}
     try:
-        requests.post(DISCORD_WEBHOOK_URL, json={"content": message}, timeout=5)
+        requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=5)
     except Exception as e:
-        logging.error(f"Webhook failed: {e}")
+        logging.error(f"Discord embed failed: {e}")
 
 
 def alert_if_spike():
@@ -46,7 +59,16 @@ def alert_if_spike():
     visits = load_visits()
     recent = [v for v in visits if datetime.fromisoformat(v['time']) >= one_min_ago]
     if len(recent) > ALERT_THRESHOLD:
-        send_discord(f"🚨 Traffic spike! {len(recent)} visits in the last minute.")
+        alert_embed = {
+            "title": "🚨 Traffic Spike",
+            "description": f"{len(recent)} visits in the last minute.",
+            "color": 16711680,
+            "timestamp": now.isoformat()
+        }
+        try:
+            requests.post(DISCORD_WEBHOOK_URL, json={"embeds": [alert_embed]}, timeout=5)
+        except Exception as e:
+            logging.error(f"Spike alert failed: {e}")
 
 # Routes
 
@@ -72,8 +94,9 @@ def track_visit():
     save_visits(visits)
     logging.info(f"Logged visit: {visit}")
 
-    # Notify and alert
-    send_discord(f"📥 New Visit: {visit['page']} from {visit['ip']}")
+    # Send a clean embed to Discord
+    send_visit_embed(visit)
+    # Check for traffic spikes
     alert_if_spike()
 
     return {"status": "ok"}
