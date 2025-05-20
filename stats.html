@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Visit Logs</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h1>Visit Stats</h1>
+    <table>
+        <tr>
+            <th>Page</th>
+            <th>Time</th>
+            <th>IP</th>
+            <th>City</th>
+            <th>Country</th>
+            <th>User-Agent</th>
+            <th>Referrer</th>
+        </tr>
+        {% for visit in visits %}
+        <tr>
+            <td>{{ visit.page }}</td>
+            <td>{{ visit.time }}</td>
+            <td>{{ visit.ip }}</td>
+            <td>{{ visit.geo.city }}</td>
+            <td>{{ visit.geo.country }}</td>
+            <td>{{ visit.userAgent }}</td>
+            <td>{{ visit.referrer }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
