@@ -1,0 +1,6 @@
+Flask
+flask-cors
+requests
+gunicorn
+
+https://discord.com/api/webhooks/1374191677270659102/V-XkVQnRcrTVc4Z0TTDnwjaSS32cSMSHRe_85nJJ8O2Jz-E6nhQhZPQyYo9fG4FOcFecte
