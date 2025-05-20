@@ -23,9 +23,10 @@ def get_geo_info(ip):
     except:
         return {"city": "Unknown", "country": "Unknown"}
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def home():
-    return render_template("index.html")
+    return {"status": "ok", "message": "Tracker is live"}, 200
+
 
 @app.route("/visit", methods=["POST"])
 def track_visit():
